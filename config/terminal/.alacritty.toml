@@ -1,3 +1,4 @@
+[general]
 live_config_reload = true
 
 [window]
@@ -9,7 +10,6 @@ padding.y = 8
 dynamic_padding = true
 blur = true
 
-
 [colors.bright]
 black = "0x414868"
 blue = "0x7aa2f7"
@@ -19,7 +19,6 @@ magenta = "0xbb9af7"
 red = "0xf7768e"
 white = "0xc0caf5"
 yellow = "0xe0af68"
-
 
 [colors.normal]
 black = "0x15161E"
@@ -31,34 +30,27 @@ red = "0xf7768e"
 white = "0xa9b1d6"
 yellow = "0xe0af68"
 
-
 [colors.primary]
 background = "0x1a1b26"
 foreground = "0xc0caf5"
 
-
 [env]
 TERM = "alacritty"
 
-
 [font]
 size = 20.0
-
 
 [font.bold]
 family = "PlemolJP Console NF"
 style = "Bold"
 
-
 [font.bold_italic]
 family = "PlemolJP Console NF"
 style = "Bold Italic"
 
-
 [font.italic]
 family = "PlemolJP Console NF"
 style = "Italic"
-
 
 [font.normal]
 family = "PlemolJP Console NF"

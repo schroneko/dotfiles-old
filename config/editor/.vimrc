@@ -15,10 +15,14 @@ endif
 " Plugin and Filetype Settings
 filetype plugin on
 call plug#begin()
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+" Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install', 'for': ['markdown', 'text', 'vim-plug'] }
 Plug 'ryanoasis/vim-devicons'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'ggml-org/llama.vim'
+
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'olimorris/codecompanion.nvim'
 call plug#end()
 
 " Key Mappings
@@ -26,7 +30,13 @@ inoremap jj <ESC>
 nmap ; :
 nnoremap <Esc><Esc> :nohlsearch<Enter>
 nnoremap <C-n> :Prettier<Enter>
-nnoremap <C-p> :MarkdownPreview<Enter>
+nmap <C-p> <Plug>MarkdownPreviewToggle
+
+" markdown preview の設定
+let g:mkdp_filetypes = ['markdown', 'text']
+let g:mkdp_auto_start = 0
+let g:mkdp_auto_close = 1
+let g:mkdp_refresh_slow = 0
 
 " Search Settings
 set hlsearch
@@ -80,4 +90,3 @@ let g:syntastic_python_pycodestyle_args='--ignore=E501'
 
 " Custom Commands
 command! -nargs=0 Prettier :CocCommand prettier.forceFormatDocument
-command! -nargs=0 MarkdownPreview :call CocAction('runCommand', 'markdown-preview-enhanced.openPreview')
