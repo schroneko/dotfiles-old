@@ -1,73 +1,96 @@
-#!/bin/bash
+#!/bin/zsh
+set -euo pipefail
 
-# グローバル設定
+# エラーメッセージを表示して終了
+error() {
+    echo "Error: $1" >&2
+    exit 1
+}
 
-# キーを押し続けたときに文字を繰り返さないようにする
-defaults write -g ApplePressAndHoldEnabled -bool false
+# 進行状況を表示
+info() {
+    echo "==> $1"
+}
 
-# すべてのファイル拡張子を表示
-defaults write -g AppleShowAllExtensions -bool true
+# 管理者権限の確認
+if [ "$(whoami)" != "root" ]; then
+    info "一部の設定には管理者権限が必要です"
+fi
 
-# 隠しファイルを表示
-defaults write -g AppleShowAllFiles -bool true
+# ====================
+# システム設定
+# ====================
+info "システム設定を適用中..."
 
-# キーリピート開始までの時間を短縮
-defaults write -g InitialKeyRepeat -int 15
+# キーボード設定
+defaults write -g ApplePressAndHoldEnabled -bool false    # キーリピートを有効化
+defaults write -g InitialKeyRepeat -int 15                # キーリピート開始までの時間
+defaults write -g KeyRepeat -int 2                        # キーリピートの速度
+defaults write .GlobalPreferences NSAutomaticCapitalizationEnabled -bool false  # 自動大文字化を無効化
 
-# キーリピートの速度を上げる
-defaults write -g KeyRepeat -int 2
+# ファイル表示設定
+defaults write -g AppleShowAllExtensions -bool true       # 全ての拡張子を表示
+defaults write -g AppleShowAllFiles -bool true            # 隠しファイルを表示
 
-# WebKitの開発者ツールを有効化
-defaults write -g WebKitDeveloperExtras -bool true
+# 開発者向け設定
+defaults write -g WebKitDeveloperExtras -bool true        # WebKit開発者ツール有効化
 
-# トラックパッドの速度を上げる
-defaults write -g com.apple.trackpad.scaling 2
+# ====================
+# 入力デバイス設定
+# ====================
+info "入力デバイス設定を適用中..."
 
-# 自動大文字化を無効にする
-defaults write .GlobalPreferences NSAutomaticCapitalizationEnabled -bool false
+# トラックパッド設定
+defaults write -g com.apple.trackpad.scaling 2            # トラックパッドの速度
+defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true  # タップでクリック
 
-# アプリ固有の設定
+# ====================
+# Finder設定
+# ====================
+info "Finder設定を適用中..."
 
-# トラックパッドのタップでクリックを有効化
-defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
+# 表示設定
+defaults write com.apple.finder ShowPathbar -bool true    # パスバーを表示
+defaults write com.apple.finder WarnOnEmptyTrash -bool false  # ゴミ箱を空にする時の警告を無効化
+
+# .DS_Store設定
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true  # ネットワークドライブ
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true      # USBドライブ
+
+# ====================
+# Dock設定
+# ====================
+info "Dock設定を適用中..."
+
+defaults write com.apple.dock autohide -bool true         # 自動的に隠す
+defaults write com.apple.dock show-recents -bool false    # 最近使用したアプリを非表示
+defaults write com.apple.dock static-only -bool true      # 固定のアプリのみ表示
+defaults write com.apple.dock persistent-apps -array      # アプリをすべて削除
+defaults write com.apple.dock show-process-indicators -bool false  # プロセスインジケータを非表示
+
+# ====================
+# セキュリティ設定
+# ====================
+info "セキュリティ設定を適用中..."
 
 # ダウンロードしたアプリの警告を無効化
 defaults write com.apple.LaunchServices LSQuarantine -bool false
 
-# ネットワークドライブで.DS_Storeファイルを作成しない
-defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+# 起動音を無効化（管理者権限が必要）
+if [ "$(whoami)" = "root" ]; then
+    nvram SystemAudioVolume=" "
+else
+    info "起動音の設定をスキップしました（管理者権限が必要です）"
+fi
 
-# USBドライブで.DS_Storeファイルを作成しない
-defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+# ====================
+# 設定の反映
+# ====================
+info "設定を反映中..."
 
-# Dock関連の設定
-# 自動的に隠す
-defaults write com.apple.dock autohide -bool true
+for app in "Dock" "Finder" "SystemUIServer" "System Preferences"; do
+    killall "$app" &>/dev/null || true
+done
 
-# 最近使用したアプリを表示しない
-defaults write com.apple.dock show-recents -bool false
-
-# 固定のアプリのみ表示
-defaults write com.apple.dock static-only -bool true
-
-# Dockのアプリをすべて削除
-defaults write com.apple.dock persistent-apps -array
-
-# Dockのプロセスインジケータを非表示
-defaults write com.apple.dock show-process-indicators -bool false
-
-# Finder関連の設定
-# パスバーを表示
-defaults write com.apple.finder ShowPathbar -bool true
-
-# ゴミ箱を空にする前の警告を無効化
-defaults write com.apple.finder WarnOnEmptyTrash -bool false
-
-# 起動音を無効化
-sudo nvram SystemAudioVolume=" "
-
-# 設定の即時反映
-killall Dock
-killall Finder
-killall SystemUIServer
-killall "System Preferences"
+info "macOSの設定が完了しました"
+info "一部の設定を反映するには再起動が必要です"

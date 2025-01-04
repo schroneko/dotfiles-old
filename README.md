@@ -1,4 +1,4 @@
-# My Dotfiles Repo
+# dotfiles
 
 ## インストール方法
 
@@ -19,26 +19,36 @@ dotfiles/
 │   │   └── .vimrc
 │   ├── shell/        # シェル関連設定
 │   │   ├── .hushlogin
-│   │   └── .zshrc
-│   ├── starship/     # Starship設定
-│   │   └── starship.toml
+│   │   ├── .zshrc
+│   │   └── functions/
+│   │       ├── crack.zsh
+│   │       └── extract.zsh
 │   ├── terminal/     # ターミナル設定
 │   │   └── .alacritty.toml
 │   └── tmux/         # Tmux設定
 │       └── .tmux.conf
 └── scripts/          # 各種スクリプト
-    ├── brew.sh      # Homebrew管理用
-    ├── install.sh    # インストール用
-    ├── macos.sh      # macOS設定用
-    └── sync.sh       # 設定同期用
+    ├── brew.sh       # Homebrew管理用
+    ├── install.sh    # 初期セットアップ用
+    └── macos.sh      # macOS設定用
+
 ```
 
-## Homebrew パッケージの管理
+## 管理方法
+
+### Homebrew パッケージの管理
 
 ```bash
 # 新しいパッケージをインストールした後
-./scripts/brew.sh dump    # 現在の状態を Brewfile に保存
+./scripts/brew.sh dump    # 現在の状態をBrewfileに保存
 
 # 新しい環境のセットアップ時
-./scripts/brew.sh sync    # Brewfile からパッケージをインストール
+./scripts/brew.sh sync    # Brewfileからパッケージをインストール
+```
+
+### macOS 設定の適用
+
+```bash
+# キーリピートやDockの設定など、macOSのシステム設定を適用
+./scripts/macos.sh
 ```
