@@ -1,6 +1,3 @@
-" ====================
-" プラグイン設定
-" ====================
 " vim-plugのインストール
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
 if empty(glob(data_dir . '/autoload/plug.vim'))
@@ -13,16 +10,8 @@ filetype plugin on
 call plug#begin()
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install', 'for': ['markdown', 'text', 'vim-plug'] }
 Plug 'ryanoasis/vim-devicons'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'dense-analysis/ale'
 call plug#end()
-
-" Prettierのチェックと設定
-if !executable('prettier')
-  echohl WarningMsg
-  echom "Warning: Prettier is not installed. Please install it using 'npm install -g prettier' or 'volta install prettier'."
-  echohl None
-endif
-command! -nargs=0 Prettier :CocCommand prettier.forceFormatDocument
 
 " Markdown Preview設定
 let g:mkdp_filetypes = ['markdown', 'text']
@@ -30,9 +19,6 @@ let g:mkdp_auto_start = 0
 let g:mkdp_auto_close = 1
 let g:mkdp_refresh_slow = 0
 
-" ====================
-" 基本設定
-" ====================
 " ファイル関連
 set autoread         " ファイルが外部で変更された時に自動で読み直す
 set nobackup         " バックアップファイルを作成しない
@@ -43,9 +29,6 @@ set path+=**         " ファイル検索パスの設定
 set clipboard+=unnamed " システムのクリップボードを使用
 set viminfo=         " viminfo ファイルを作成しない
 
-" ====================
-" 表示設定
-" ====================
 " UI表示
 set number           " 行番号を表示
 set cursorline       " カーソル行をハイライト
@@ -69,9 +52,6 @@ set wrapscan         " 検索時にファイル末尾まで行ったら先頭に
 set shortmess-=S     " 検索結果数を表示
 set re=0             " 正規表現エンジンの設定
 
-" ====================
-" 編集設定
-" ====================
 " インデント
 set autoindent       " 自動インデント
 set smartindent      " スマートインデント
@@ -85,14 +65,42 @@ set backspace=indent,eol,start " バックスペースの動作設定
 set virtualedit=onemore " 行末の1文字先までカーソルを移動可能に
 set whichwrap=h,l   " h,lで行をまたぐことができる
 
-" ====================
-" キーマッピング
-" ====================
 " 基本操作
 inoremap jj <ESC>
 nmap ; :
 
 " 機能キー
 nnoremap <Esc><Esc> :nohlsearch<Enter>
-nnoremap <C-n> :Prettier<Enter>
 nmap <C-p> <Plug>MarkdownPreviewToggle
+nnoremap <C-f> :ALEFix<CR>
+
+" ALEの基本設定
+let g:ale_linters_explicit = 1  " 明示的に指定したlinterのみ実行
+
+let g:ale_linters = {
+\   'javascript': ['biome'],
+\   'typescript': ['biome'],
+\   'json': ['biome'],
+\   'css': ['biome'],
+\   'html': ['biome'],
+\   'markdown': ['textlint'],
+\   'python': ['ruff'],
+\}
+
+let g:ale_fixers = {
+\   'javascript': ['biome'],
+\   'typescript': ['biome'],
+\   'json': ['biome'],
+\   'css': ['biome'],
+\   'html': ['biome'],
+\   'markdown': ['textlint', 'prettier'],
+\   'python': ['ruff'],
+\}
+
+" リアルタイムチェックを有効（入力中もチェック）
+let g:ale_lint_on_text_changed = 'always'
+let g:ale_lint_on_insert_leave = 1
+
+" エラーメッセージの表示をクイックフィックスウィンドウで
+let g:ale_set_quickfix = 1
+let g:ale_set_loclist = 1
