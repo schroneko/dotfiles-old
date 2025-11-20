@@ -25,7 +25,7 @@ else
     alias ls='ls -G'
 fi
 
-alias note='vim ~/note.md'
+alias note='vim -c "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=markdown" /tmp/note.md'
 alias icloud='cd "$HOME/Library/Mobile Documents/com~apple~CloudDocs/"'
 alias huggingface-cli='hf'
 alias dl='yt-dlp -o "%(title)s.%(ext)s"'
@@ -61,3 +61,6 @@ source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/username/.lmstudio/bin"
 # End of LM Studio CLI section
+
+# Added by Antigravity
+export PATH="/Users/username/.antigravity/antigravity/bin:$PATH"

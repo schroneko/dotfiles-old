@@ -1,106 +1,81 @@
-" vim-plugのインストール
-let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
-if empty(glob(data_dir . '/autoload/plug.vim'))
-  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
+set number
+set cursorline
+set clipboard+=unnamed
+set autoread
+set nobackup
+set noswapfile
+set backspace=indent,eol,start
+set whichwrap=h,l
 
-" プラグインの読み込み
-filetype plugin on
-call plug#begin()
-Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install', 'for': ['markdown', 'text', 'vim-plug'] }
-Plug 'ryanoasis/vim-devicons'
-Plug 'dense-analysis/ale'
-call plug#end()
+syntax on
+filetype plugin indent on
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+set autoindent
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set ambiwidth=double
+set wildmenu
+set wildmode=longest:full,full
 
-" Markdown Preview設定
-let g:mkdp_filetypes = ['markdown', 'text']
-let g:mkdp_auto_start = 0
-let g:mkdp_auto_close = 1
-let g:mkdp_refresh_slow = 0
+autocmd FileType javascript,typescript,json,yaml setlocal tabstop=2 shiftwidth=2
 
-" ファイル関連
-set autoread         " ファイルが外部で変更された時に自動で読み直す
-set nobackup         " バックアップファイルを作成しない
-set noswapfile       " スワップファイルを作成しない
-set path+=**         " ファイル検索パスの設定
-
-" システム連携
-set clipboard+=unnamed " システムのクリップボードを使用
-set viminfo=         " viminfo ファイルを作成しない
-
-" UI表示
-set number           " 行番号を表示
-set cursorline       " カーソル行をハイライト
-set ruler            " カーソル位置を表示
-set laststatus=0     " ステータスラインを非表示
-set visualbell       " ビープ音を視覚表示に
-set showmatch        " 対応する括弧を表示
-
-" 文字表示
-set ambiwidth=double " 全角文字の表示設定
-syntax on            " シンタックスハイライトを有効化
-
-" 補完と検索
-set wildmenu         " コマンドライン補完を強化
-set wildmode=longest:full,full " 補完モードの設定
-set wildignorecase   " 補完時に大文字小文字を区別しない
-set hlsearch         " 検索結果をハイライト
-set ignorecase       " 大文字小文字を区別しない
-set incsearch        " インクリメンタルサーチ
-set wrapscan         " 検索時にファイル末尾まで行ったら先頭に戻る
-set shortmess-=S     " 検索結果数を表示
-set re=0             " 正規表現エンジンの設定
-
-" インデント
-set autoindent       " 自動インデント
-set smartindent      " スマートインデント
-set expandtab        " タブを空白に変換
-set tabstop=4        " タブ幅を4に設定
-set softtabstop=4    " ソフトタブ幅を4に設定
-set shiftwidth=4     " インデント幅を4に設定
-
-" カーソル移動
-set backspace=indent,eol,start " バックスペースの動作設定
-set virtualedit=onemore " 行末の1文字先までカーソルを移動可能に
-set whichwrap=h,l   " h,lで行をまたぐことができる
-
-" 基本操作
 inoremap jj <ESC>
-nmap ; :
-
-" 機能キー
 nnoremap <Esc><Esc> :nohlsearch<Enter>
-nmap <C-p> <Plug>MarkdownPreviewToggle
-nnoremap <C-f> :ALEFix<CR>
+nnoremap ;; :
 
-" ALEの基本設定
-let g:ale_linters_explicit = 1  " 明示的に指定したlinterのみ実行
+function! RunFormatAndFix()
+    let l:view = winsaveview()
+    let l:ext = expand('%:e')
+    let l:tempfile = tempname() . '.' . l:ext
 
-let g:ale_linters = {
-\   'javascript': ['biome'],
-\   'typescript': ['biome'],
-\   'json': ['biome'],
-\   'css': ['biome'],
-\   'html': ['biome'],
-\   'markdown': ['textlint'],
-\   'python': ['ruff'],
-\}
+    try
+        call writefile(getline(1, '$'), l:tempfile)
 
-let g:ale_fixers = {
-\   'javascript': ['biome'],
-\   'typescript': ['biome'],
-\   'json': ['biome'],
-\   'css': ['biome'],
-\   'html': ['biome'],
-\   'markdown': ['textlint', 'prettier'],
-\   'python': ['ruff'],
-\}
+        " Prettier
+        let l:cmd_prettier = 'PRETTIER_EXPERIMENTAL_CLI=1 prettier --write ' . shellescape(l:tempfile)
+        let l:prettier_output = system(l:cmd_prettier)
 
-" リアルタイムチェックを有効（入力中もチェック）
-let g:ale_lint_on_text_changed = 'always'
-let g:ale_lint_on_insert_leave = 1
+        if v:shell_error != 0
+            echoerr "Prettier failed! " . l:prettier_output
+            return
+        endif
 
-" エラーメッセージの表示をクイックフィックスウィンドウで
-let g:ale_set_quickfix = 1
-let g:ale_set_loclist = 1
+        echo "Prettier: OK... "
+
+        " textlint (markdown のみ)
+        if &filetype == 'markdown'
+            let l:cmd_textlint = 'textlint --fix ' . shellescape(l:tempfile)
+            let l:textlint_output = system(l:cmd_textlint)
+            let l:textlint_exit = v:shell_error
+
+            if l:textlint_exit == 2
+                echoerr "textlint error! " . l:textlint_output
+                return
+            elseif l:textlint_exit == 1
+                echo "Formatted & Fixed (Issues remain) ⚠️"
+            else
+                echo "Formatted & Fixed (Perfect) ✨"
+            endif
+        else
+            echo "Formatted (Prettier) ✨"
+        endif
+
+        let l:final_lines = readfile(l:tempfile)
+        silent %delete _
+        call setline(1, l:final_lines)
+        call winrestview(l:view)
+        redraw
+    finally
+        call delete(l:tempfile)
+    endtry
+endfunction
+
+nnoremap <C-=> :call RunFormatAndFix()<CR>
+
+set makeprg=textlint\ -f\ unix\ %
+set errorformat=%f:%l:%c:\ %m
+command! Lint silent make | redraw! | copen
